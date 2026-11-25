@@ -1,0 +1,6 @@
+Mettre en ligne sur GitHub Pages
+1. Crée un dépôt (ex. « orga-indus ») sur ton compte GitHub.
+2. Envoie TOUS les fichiers de ce dossier à la racine du dépôt.
+3. Settings > Pages > Source : branche main, dossier / (root).
+4. Ouvre https://yudisk-cyber.github.io/orga-indus/ sur ton téléphone puis menu > « Ajouter à l'écran d'accueil ».
+L'appli marche ensuite hors connexion. Tes saisies restent sur l'appareil.

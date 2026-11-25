@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orga Industrielle</title>
+<meta name="theme-color" content="#ff4f00">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: atelier des méthodes, précis, sobre, efficace
+   IDEA: une fiche de calcul du bureau des méthodes : on saisit, l'instrument trace
+   PICTURE: dans chaque onglet, le résultat (courbe, Gantt, graphe MPM, histogramme) en grand
+   COLOUR and TYPE: aluminium, noir, orange pointeur ; Geist
+   LAYOUT: barre d'onglets défilante, colonne de saisie à gauche, grande zone résultats à droite */
+:root{color-scheme:light dark;--bg:light-dark(#e9eaec,#141517);--card:light-dark(#fff,#1c1e21);--ink:light-dark(#111214,#e9eaec);--mut:light-dark(#5d6168,#9a9fa6);--line:light-dark(#d5d7db,#2e3136);--soft:light-dark(#f3f4f5,#24272b);--acc:#ff4f00;--accs:light-dark(#ffe4d6,#4a2210);--blu:light-dark(#1f5fbf,#78aaff);--grn:light-dark(#17824a,#4cc483);--red:light-dark(#c62828,#ff6b6b);--ylw:light-dark(#b07a00,#f0c040)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Geist,system-ui,sans-serif;overflow-x:clip}
+header{background:var(--ink);color:var(--bg);position:sticky;top:0;z-index:5}
+.top{display:flex;align-items:center;gap:12px;padding:10px max(3vw,14px) 0}
+.top b{font-size:18px;font-weight:700}.top b i{font-style:normal;color:var(--acc)}
+.top span{color:color-mix(in srgb,var(--bg) 60%,transparent);font-size:13px}
+nav{display:flex;gap:2px;overflow-x:auto;padding:8px max(3vw,14px) 0;scrollbar-width:thin}
+nav a{flex:none;color:color-mix(in srgb,var(--bg) 75%,transparent);text-decoration:none;padding:9px 13px 11px;border-radius:8px 8px 0 0;font-size:14px;font-weight:500;white-space:nowrap}
+nav a:hover{color:var(--bg)}nav a.on{background:var(--bg);color:var(--ink)}
+nav a.on::after{content:"";display:block;height:2px;background:var(--acc);margin-top:4px;border-radius:2px}
+main{max-width:1320px;margin:0 auto;padding:20px max(3vw,14px) 60px}
+h1{font-size:clamp(28px,4vw,42px);line-height:1.05;margin:4px 0 6px;text-wrap:balance;font-weight:600}
+h2{font-size:20px;margin:0 0 10px;font-weight:600}h3{font-size:16px;margin:0 0 10px;font-weight:600}
+.intro{color:var(--mut);max-width:75ch;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:16px;align-items:start}
+.col{display:grid;gap:16px}
+@media(max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.f{display:grid;gap:4px;margin:0 0 10px}.f>span{font-size:13px;color:var(--mut)}
+.iu{display:flex;align-items:center;gap:6px}.iu i{font-style:normal;font-size:13px;color:var(--mut);white-space:nowrap}
+input,select,textarea{font:16px Geist,system-ui,sans-serif;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-height:40px}
+textarea{min-height:140px;font-size:14px;font-family:ui-monospace,Consolas,monospace}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0 10px}
+button{font:500 14px Geist,system-ui,sans-serif;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:8px;padding:8px 12px;min-height:40px;cursor:pointer}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button.x{min-height:32px;padding:2px 8px;color:var(--mut);background:none;border:0;font-size:18px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-weight:600;color:var(--mut);font-size:13px}
+th:first-child,td:first-child{text-align:left}
+table.edit td{padding:3px 3px;border:0}table.edit input,table.edit select{min-height:36px;padding:6px 8px;font-size:15px}
+table.edit th{text-align:left;padding:4px 3px}
+tr.crit td{color:var(--acc);font-weight:600}
+td.ta{text-align:left;white-space:normal}
+.tag{display:inline-block;padding:1px 8px;border-radius:20px;font-size:12px;font-weight:600}
+.tA{background:var(--acc);color:#fff}.tB{background:var(--blu);color:#fff}.tC{background:var(--line);color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 4px}
+.kpi{background:var(--soft);border-radius:10px;padding:10px 12px}
+.kpi span{display:block;font-size:13px;color:var(--mut)}
+.kpi b{display:block;font-size:clamp(22px,3vw,30px);font-weight:600;line-height:1.15;overflow-wrap:anywhere}
+.kpi.a b{color:var(--acc)}.kpi small{color:var(--mut);font-size:13px}
+.fig{position:relative;min-height:320px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.fig text{font:12px Geist,system-ui,sans-serif;fill:var(--mut)}
+.fig text.lb{fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:4px;stroke-linejoin:round}
+.leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--mut);margin-top:6px}
+.leg i{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.concl{background:var(--accs);border-left:4px solid var(--acc);border-radius:6px;padding:10px 12px;margin:12px 0 0}
+.ok{color:var(--grn);font-weight:600}.ko{color:var(--red);font-weight:600}.wa{color:var(--ylw);font-weight:600}
+.note{font-size:13px;color:var(--mut)}
+.mpm{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.mpm text{font:13px Geist,system-ui,sans-serif;fill:var(--ink)}
+.home{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.home a{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--ink);text-decoration:none}
+.home a:hover{border-color:var(--acc)}.home a b{display:block;font-size:17px}.home a span{font-size:14px;color:var(--mut)}
+.typo td,.typo th{text-align:center;white-space:normal}.typo td.c{cursor:pointer}.typo td.sel{background:var(--acc);color:#fff;border-radius:6px}
+ul.cor{padding-left:18px}ul.cor li{margin:0 0 12px}
+.s5{display:grid;gap:10px}.s5 label{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
+.s5 input[type=range]{grid-column:1/-1;accent-color:var(--acc);padding:0;min-height:28px;background:none;border:0}
+details summary{cursor:pointer;color:var(--mut);font-size:14px}
+@media(max-width:600px){table{font-size:13px}.card{padding:12px}}
+@media(prefers-reduced-motion:no-preference){.card{animation:in .25s ease-out}@keyframes in{from{opacity:0;transform:translateY(4px)}}}
+</style></head><body>
+<header><div class="top"><b>Orga <i>Industrielle</i></b><span>Gestion de production · BTS</span></div><nav id="nav"></nav></header>
+<main id="app"></main>
+<script>
+{
+const KEY='orga-indus-v1';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(x,d=2)=>Number.isFinite(x)?x.toLocaleString('fr-FR',{maximumFractionDigits:d}):'—';
+const fx=(x,d=2)=>Number.isFinite(x)?x.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+const pc=(x,d=1)=>Number.isFinite(x)?fx(x*100,d)+' %':'—';
+const N=v=>{const x=parseFloat(String(v).replace(',','.'));return Number.isFinite(x)?x:0};
+const $=id=>document.getElementById(id);
+
+/* ---------- échantillon MSP déterministe ---------- */
+function sample(){let s=12345;const r=()=>{s=(s*1664525+1013904223)%4294967296;return(s+1)/4294967297};const v=[];
+ for(let i=0;i<50;i++){const z=Math.sqrt(-2*Math.log(r()))*Math.cos(2*Math.PI*r());v.push((20.012+0.012*z).toFixed(3))}return v.join(' ')}
+
+/* ---------- données de base ---------- */
+const D={
+abc:{A:80,B:95,rows:[{code:'P-104',q:120,p:48},{code:'P-212',q:95,p:52},{code:'P-031',q:300,p:4.5},{code:'P-118',q:60,p:18},{code:'P-075',q:210,p:4},{code:'P-330',q:40,p:17},{code:'P-009',q:150,p:3.2},{code:'P-221',q:70,p:5},{code:'P-140',q:90,p:2.5},{code:'P-302',q:25,p:6}]},
+typo:{q:'pm',r:'rep'},
+mrp:{H:8,bb:[0,30,0,40,20,0,50,30],arts:[
+ {code:'TAB',nom:'Tabouret (PF)',parent:'',coef:1,type:'OF',stock:20,ss:10,delai:1,lot:0,perte:0,enc:0,encp:1},
+ {code:'ASS',nom:'Assise',parent:'TAB',coef:1,type:'OF',stock:30,ss:0,delai:1,lot:50,perte:0,enc:0,encp:1},
+ {code:'PIE',nom:'Pied',parent:'TAB',coef:3,type:'OA',stock:80,ss:20,delai:2,lot:100,perte:0,enc:100,encp:2},
+ {code:'VIS',nom:'Vis',parent:'ASS',coef:4,type:'OA',stock:100,ss:50,delai:1,lot:500,perte:2,enc:0,encp:1}]},
+mpm:{t:[{id:'A',d:2,p:''},{id:'B',d:4,p:''},{id:'C',d:4,p:'A'},{id:'D',d:5,p:'A et B'},{id:'E',d:6,p:'C et D'}]},
+gantt:{u:'j',t:[{id:'P1',d:3,p:'',r:''},{id:'P2',d:2,p:'',r:''},{id:'P3',d:4,p:'',r:''},{id:'P4',d:2,p:'',r:''},{id:'SE',d:1,p:'P1 et P4',r:''},{id:'PF',d:3,p:'E et P3',r:''},{id:'E',d:2,p:'SE et P2',r:''}]},
+lots:{Q:100,T:20,postes:[{n:'Débit',t:2},{n:'Tournage',t:5},{n:'Perçage',t:3},{n:'Contrôle',t:1}]},
+indic:{q:1200,e:1200,s:1140,postes:[{n:'Tournage',tu:1.8,autre:0,ct:39,arr:3},{n:'Fraisage',tu:2.2,autre:0,ct:39,arr:4},{n:'Perçage',tu:1.2,autre:0,ct:39,arr:2},{n:'Montage',tu:2,autre:0,ct:39,arr:5}]},
+msp:{data:sample(),meth:'sqrt',ti:19.95,ts:20.05,seuil:1.33},
+s5:{sc:[2,1,2,1,1],ch:[false,false,false,false,false,false]},
+wilson:{N:200000,cl:150,a:10,t:20,j:360,ss:0,dep:[{n:'Loyer',v:12000},{n:'Assurance',v:3000},{n:'Magasinage (personnel)',v:25000},{n:'Énergie',v:4000},{n:'Intérêt du capital',v:8000}],vm:250000},
+seuil:{c:20,d:6,rmax:2,sur:10,Q:300,scen:'non',retard:2},
+appro:{m:'pc',c:10,v:30,L:5,T:10,Q:100,S:70,niv:160,jours:120,seed:7,s0:120}
+};
+const clone=o=>JSON.parse(JSON.stringify(o));
+let S=clone(D);
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)for(const k in D)if(s[k])S[k]=s[k]}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+/* ---------- graphiques ---------- */
+function fig(el,fn){if(!el)return;el._fn=fn;const draw=()=>{const W=el.clientWidth,H=el.clientHeight;if(!W||!H)return;el.innerHTML=`<svg viewBox="0 0 ${W} ${H}">${el._fn(W,H)}</svg>`};if(!el._ro){el._ro=new ResizeObserver(draw);el._ro.observe(el)}draw()}
+function ticks(a,b,n){if(a===b){a-=1;b+=1}const s0=(b-a)/n,m=10**Math.floor(Math.log10(s0)),e=s0/m,st=(e>=7.5?10:e>=3.5?5:e>=1.5?2:1)*m,t=[];for(let v=Math.ceil(a/st-1e-9)*st;v<=b+st*1e-9;v+=st)t.push(+v.toFixed(10));return t}
+const fa=v=>Math.abs(v)>=1000?fmt(v,0):fmt(v,3);
+function plot(el,o){fig(el,(W,H)=>{
+ const m={l:o.ml??56,r:o.mr??18,t:16,b:o.xl?46:30},iw=W-m.l-m.r,ih=H-m.t-m.b;
+ const X=v=>m.l+(v-o.x[0])/(o.x[1]-o.x[0])*iw,Y=v=>m.t+ih-(v-o.y[0])/(o.y[1]-o.y[0])*ih;let s='';
+ for(const b of o.bands||[])s+=`<rect x="${X(b.x0)}" y="${m.t}" width="${Math.max(0,X(b.x1)-X(b.x0))}" height="${ih}" style="fill:${b.col}" opacity=".12"/><text class="lb" x="${(X(b.x0)+X(b.x1))/2}" y="${m.t+14}" text-anchor="middle">${esc(b.l)}</text>`;
+ const yt=o.yt||ticks(o.y[0],o.y[1],H<260?4:6).map(v=>({v,l:(o.yf||fa)(v)}));
+ for(const t of yt){if(t.v<o.y[0]-1e-9||t.v>o.y[1]+1e-9)continue;s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Y(t.v)}" y2="${Y(t.v)}" style="stroke:var(--line)"/><text x="${m.l-6}" y="${Y(t.v)+4}" text-anchor="end">${esc(t.l)}</text>`}
+ const xt=o.xt||ticks(o.x[0],o.x[1],W<520?4:8).map(v=>({v,l:(o.xf||fa)(v)}));
+ for(const t of xt){if(t.v<o.x[0]-1e-9||t.v>o.x[1]+1e-9)continue;s+=`<line x1="${X(t.v)}" x2="${X(t.v)}" y1="${m.t+ih}" y2="${m.t+ih+4}" style="stroke:var(--mut)"/><text x="${X(t.v)}" y="${m.t+ih+17}" text-anchor="middle">${esc(t.l)}</text>`}
+ s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${m.t+ih}" y2="${m.t+ih}" style="stroke:var(--mut)"/>`;
+ if(o.xl)s+=`<text x="${m.l+iw/2}" y="${H-6}" text-anchor="middle">${esc(o.xl)}</text>`;
+ if(o.yl)s+=`<text x="${m.l}" y="${m.t-4}" text-anchor="start" style="font-size:11px">${esc(o.yl)}</text>`;
+ const cl=v=>Math.max(o.y[0],Math.min(o.y[1],v));
+ for(const se of o.series){const c=se.col||'var(--acc)';
+  if(se.type==='bars'){const bw=se.bw||1;for(const[x,y]of se.pts){const x0=X(x-bw/2),x1=X(x+bw/2),y0=Y(cl(Math.max(0,y))),y1=Y(cl(Math.min(0,y)));s+=`<rect x="${x0+1}" y="${y0}" width="${Math.max(1,x1-x0-2)}" height="${Math.max(0,y1-y0)}" rx="2" style="fill:${se.colf?se.colf(x,y):c}" opacity="${se.op??1}"/>`}}
+  else if(se.type==='pts'){for(const[x,y]of se.pts)s+=`<circle cx="${X(x)}" cy="${Y(y)}" r="${se.r||4}" style="fill:${c};stroke:var(--card);stroke-width:1.5"/>`}
+  else{const d=se.pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+','+Y(cl(p[1])).toFixed(1)).join('');
+   if(se.type==='area')s+=`<path d="${d}L${X(se.pts.at(-1)[0])},${Y(o.y[0])}L${X(se.pts[0][0])},${Y(o.y[0])}Z" style="fill:${c}" opacity=".15"/>`;
+   s+=`<path d="${d}" fill="none" style="stroke:${c};stroke-width:${se.w||2.2}" ${se.dash?'stroke-dasharray="6 4"':''} stroke-linejoin="round"/>`;
+   if(se.dots)for(const[x,y]of se.pts)s+=`<circle cx="${X(x)}" cy="${Y(y)}" r="3.5" style="fill:${c}"/>`}}
+ for(const h of o.hl||[])s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Y(h.y)}" y2="${Y(h.y)}" style="stroke:${h.col}" stroke-width="1.6" stroke-dasharray="${h.dash??'5 4'}"/>${h.l?`<text class="lb" x="${W-m.r-4}" y="${Y(h.y)-5}" text-anchor="end">${esc(h.l)}</text>`:''}`;
+ for(const v of o.vl||[])s+=`<line x1="${X(v.x)}" x2="${X(v.x)}" y1="${m.t}" y2="${m.t+ih}" style="stroke:${v.col}" stroke-width="1.6" stroke-dasharray="${v.dash??'5 4'}"/>${v.l?`<text class="lb" x="${X(v.x)+4}" y="${m.t+(v.ly||28)}">${esc(v.l)}</text>`:''}`;
+ if(o.extra)s+=o.extra(X,Y,m,iw,ih);
+ return s})}
+const legend=(id,it)=>{const e=$(id);if(e)e.innerHTML=it.map(([c,l,d])=>`<span><i style="background:${c}${d?';opacity:.5':''}"></i>${esc(l)}</span>`).join('')};
+
+/* Gantt générique */
+function gantt(el,bars,o={}){const rows=o.rows||[...new Set(bars.map(b=>b.row))];el.style.height=(rows.length*34+52)+'px';el.style.minHeight='0';
+ const T=Math.max(1,...bars.map(b=>b.s+b.d+(b.mt||0)));
+ fig(el,(W,H)=>{const m={l:o.ml||84,r:16,t:8,b:30},iw=W-m.l-m.r,X=v=>m.l+v/T*iw,rh=34;let s='';
+  const tk=ticks(0,T,W<520?5:Math.min(12,Math.ceil(T)));for(const t of tk){s+=`<line x1="${X(t)}" x2="${X(t)}" y1="${m.t}" y2="${m.t+rows.length*rh}" style="stroke:var(--line)"/><text x="${X(t)}" y="${m.t+rows.length*rh+16}" text-anchor="middle">${fmt(t,2)}</text>`}
+  rows.forEach((r,i)=>{s+=`<text class="lb" x="${m.l-8}" y="${m.t+i*rh+21}" text-anchor="end">${esc(r)}</text>`});
+  for(const b of bars){const i=rows.indexOf(b.row),y=m.t+i*rh+6,w=Math.max(1.5,X(b.s+b.d)-X(b.s));
+   if(b.mt>0)s+=`<rect x="${X(b.s+b.d)}" y="${y+7}" width="${X(b.s+b.d+b.mt)-X(b.s+b.d)}" height="8" rx="2" style="fill:var(--mut)" opacity=".3"/>`;
+   s+=`<rect x="${X(b.s)}" y="${y}" width="${w}" height="22" rx="4" style="fill:${b.col||(b.crit?'var(--acc)':'var(--blu)')}" opacity="${b.op??1}"/>`;
+   if(b.lab&&w>26)s+=`<text x="${X(b.s)+w/2}" y="${y+15}" text-anchor="middle" style="fill:#fff;font-weight:600">${esc(b.lab)}</text>`}
+  s+=`<text x="${W-m.r}" y="${H-2}" text-anchor="end">${esc(o.unit||'')}</text>`;return s})}
+
+/* ---------- ordonnancement (MPM / Gantt) ---------- */
+function sched(list){const ts=list.filter(t=>String(t.id).trim()).map(t=>({id:String(t.id).trim(),d:N(t.d),r:(t.r||'').trim(),pr:String(t.p||'').split(/[\s,;+]+/).map(x=>x.trim()).filter(x=>x&&x.toLowerCase()!=='et')}));
+ const by=Object.fromEntries(ts.map(t=>[t.id,t]));const err=[];
+ for(const t of ts)for(const p of t.pr)if(!by[p])err.push(`« ${t.id} » dépend de « ${p} » qui n'existe pas`);
+ if(err.length)return{err};
+ const order=[],st={};const visit=(t,path)=>{if(st[t.id]===2)return true;if(st[t.id]===1){err.push('Boucle dans les antériorités : '+path.concat(t.id).join(' → '));return false}st[t.id]=1;for(const p of t.pr)if(!visit(by[p],path.concat(t.id)))return false;st[t.id]=2;order.push(t);return true};
+ for(const t of ts)if(!visit(t,[]))return{err};
+ for(const t of order){t.es=t.pr.length?Math.max(...t.pr.map(p=>by[p].ef)):0;t.ef=t.es+t.d}
+ const T=Math.max(0,...ts.map(t=>t.ef));for(const t of ts)t.su=ts.filter(u=>u.pr.includes(t.id)).map(u=>u.id);
+ for(const t of [...order].reverse()){t.lf=t.su.length?Math.min(...t.su.map(s=>by[s].ls)):T;t.ls=t.lf-t.d;t.mt=t.ls-t.es;t.ml=(t.su.length?Math.min(...t.su.map(s=>by[s].es)):T)-t.ef;t.crit=Math.abs(t.mt)<1e-9}
+ for(const t of order)t.lv=t.pr.length?1+Math.max(...t.pr.map(p=>by[p].lv)):1;
+ const paths=[];const walk=(t,acc)=>{const nx=t.su.map(s=>by[s]).filter(u=>u.crit&&Math.abs(u.es-t.ef)<1e-9);if(!t.su.length||!nx.length){if(Math.abs(t.ef-T)<1e-9)paths.push(acc);return}for(const u of nx)walk(u,acc.concat(u.id))};
+ for(const t of ts.filter(t=>t.crit&&t.es===0))walk(t,[t.id]);
+ return{ts,order,by,T,paths}}
+function schedTable(r,u){return`<div class="scroll"><table><thead><tr><th>Opération</th><th>Durée</th><th>Antériorités</th><th>Début + tôt</th><th>Début + tard</th><th>Fin + tôt</th><th>Fin + tard</th><th>Marge totale</th><th>Marge libre</th></tr></thead><tbody>${r.ts.map(t=>`<tr class="${t.crit?'crit':''}"><td>${esc(t.id)}</td><td>${fmt(t.d)}</td><td style="text-align:left">${esc(t.pr.join(', ')||'—')}</td><td>${fmt(t.es)}</td><td>${fmt(t.ls)}</td><td>${fmt(t.ef)}</td><td>${fmt(t.lf)}</td><td>${fmt(t.mt)}</td><td>${fmt(t.ml)}</td></tr>`).join('')}</tbody></table></div>`}
+function mpmGraph(r){const bw=124,bh=60,gx=64,gy=26;const lv={};const maxL=Math.max(0,...r.ts.map(t=>t.lv));
+ const cols=[[{id:'__D',name:'Début',d:'',es:0,ls:0,crit:true}]];for(let l=1;l<=maxL;l++)cols.push(r.ts.filter(t=>t.lv===l));cols.push([{id:'__F',name:'Fin',d:'',es:r.T,ls:r.T,crit:true}]);
+ const pos={};const maxR=Math.max(...cols.map(c=>c.length));const H=maxR*(bh+gy)+gy,W=cols.length*(bw+gx)-gx+40;
+ cols.forEach((c,ci)=>{const off=(maxR-c.length)*(bh+gy)/2;c.forEach((t,ri)=>{pos[t.id]={x:20+ci*(bw+gx),y:gy+off+ri*(bh+gy),t}})});
+ const edges=[];for(const t of r.ts){if(!t.pr.length)edges.push(['__D',t.id,t.crit]);for(const p of t.pr)edges.push([p,t.id,t.crit&&r.by[p].crit&&Math.abs(r.by[p].ef-t.es)<1e-9]);if(!t.su.length)edges.push([t.id,'__F',t.crit&&Math.abs(t.ef-r.T)<1e-9])}
+ let s=`<defs><marker id="ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" style="fill:var(--mut)"/></marker><marker id="mc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" style="fill:var(--acc)"/></marker></defs>`;
+ for(const[a,b,c]of edges){const A=pos[a],B=pos[b];const x1=A.x+bw,y1=A.y+bh/2,x2=B.x-2,y2=B.y+bh/2,mx=(x1+x2)/2;s+=`<path d="M${x1},${y1}C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" style="stroke:${c?'var(--acc)':'var(--mut)'}" stroke-width="${c?2.6:1.4}" marker-end="url(#${c?'mc':'ma'})"/>`}
+ for(const k in pos){const{x,y,t}=pos[k];const nm=t.name||t.id;const c=t.crit;
+  s+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="6" style="fill:var(--card);stroke:${c?'var(--acc)':'var(--mut)'}" stroke-width="${c?2.2:1.2}"/><line x1="${x}" x2="${x+bw}" y1="${y+bh/2}" y2="${y+bh/2}" style="stroke:var(--line)"/><line x1="${x+bw/2}" x2="${x+bw/2}" y1="${y}" y2="${y+bh}" style="stroke:var(--line)"/>
+  <text x="${x+bw/4}" y="${y+20}" text-anchor="middle" style="font-weight:700">${esc(nm)}</text><text x="${x+3*bw/4}" y="${y+20}" text-anchor="middle">${t.d===''?esc(nm):fmt(t.d)}</text>
+  <text x="${x+bw/4}" y="${y+bh/2+20}" text-anchor="middle">${fmt(t.es)}</text><text x="${x+3*bw/4}" y="${y+bh/2+20}" text-anchor="middle">${fmt(t.ls)}</text>`}
+ return`<svg viewBox="0 0 ${W} ${H}" style="display:block;width:100%;min-width:${Math.min(W,620)}px;max-width:${W*1.15}px;height:auto">${s}</svg>`}
+
+/* ---------- maths ---------- */
+function invN(p){const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.357751867269,-30.66479806614716,2.506628277459239],b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572],c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783],d=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416],pl=0.02425;let q,r;
+ if(p<pl){q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1)}
+ if(p<=1-pl){q=p-.5;r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1)}
+ q=Math.sqrt(-2*Math.log(1-p));return-(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1)}
+const pdf=(x,m,s)=>Math.exp(-((x-m)**2)/(2*s*s))/(s*Math.sqrt(2*Math.PI));
+
+/* ---------- aides de saisie ---------- */
+let cur='accueil';
+const num=(k,l,u='')=>`<label class="f"><span>${l}</span><span class="iu"><input type="number" step="any" inputmode="decimal" data-k="${k}" value="${esc(S[cur][k])}">${u?`<i>${u}</i>`:''}</span></label>`;
+const sel=(k,l,opts,rb)=>`<label class="f"><span>${l}</span><select data-k="${k}" ${rb?'data-rb="1"':''}>${opts.map(([v,t])=>`<option value="${v}" ${S[cur][k]==v?'selected':''}>${t}</option>`).join('')}</select></label>`;
+function etab(tbl,cols,tab=cur){const rows=S[tab][tbl];return`<div class="scroll" id="tb-${tbl}"><table class="edit"><thead><tr>${cols.map(c=>`<th>${c.l}</th>`).join('')}<th></th></tr></thead><tbody>${rows.map((r,i)=>`<tr>${cols.map(c=>`<td style="min-width:${c.w||70}px">${c.o?`<select data-t="${tbl}" data-r="${i}" data-c="${c.k}">${c.o.map(([v,t])=>`<option value="${v}" ${r[c.k]==v?'selected':''}>${t}</option>`).join('')}</select>`:`<input ${c.t==='n'?'type="number" step="any" inputmode="decimal"':'type="text"'} data-t="${tbl}" data-r="${i}" data-c="${c.k}" value="${esc(r[c.k])}">`}</td>`).join('')}<td><button class="x" data-del="${tbl}" data-r="${i}" aria-label="Supprimer la ligne">×</button></td></tr>`).join('')}</tbody></table></div><div class="bar" style="margin-top:6px"><button data-add="${tbl}">+ Ajouter une ligne</button></div>`}
+
+/* ---------- onglets ---------- */
+const T={};
+
+T.accueil={t:'Accueil',h:'Accueil',intro:'Chaque onglet reprend un chapitre de ton cours. Les données d\'exemple sont déjà remplies : modifie-les, tout se recalcule (tableaux, graphiques, schémas). Tes saisies sont gardées sur cet appareil.',
+ b:()=>`<div class="home">${Object.entries(T).filter(([k])=>k!=='accueil').map(([k,v])=>`<a href="#${k}"><b>${v.t}</b><span>${v.d||''}</span></a>`).join('')}</div>`,c(){}};
+
+T.abc={t:'Méthode ABC',d:'Pareto : classer les articles selon le chiffre d\'affaires',intro:'Pareto : environ 20 % des éléments représentent 80 % du critère. Élément = code article, critère = CA = nombre de ventes × prix.',
+ b:()=>`<div class="grid"><div class="card"><h3>Données</h3>${etab('rows',[{k:'code',l:'Code',w:90},{k:'q',l:'Ventes',t:'n'},{k:'p',l:'Prix (€)',t:'n'}])}<div class="row2">${num('A','Limite classe A','% CA cumulé')}${num('B','Limite classe B','% CA cumulé')}</div></div>
+ <div class="col"><div class="card"><h3>Courbe ABC</h3><div class="kpis" id="k-abc"></div><div class="fig" id="f-abc"></div><div class="leg" id="l-abc"></div></div><div class="card"><h3>Tableau ABC</h3><div id="o-abc"></div><div id="s-abc"></div><p class="concl" id="c-abc"></p></div></div></div>`,
+ c(){const s=S.abc,A=N(s.A),B=N(s.B);const r=s.rows.filter(x=>String(x.code).trim()).map(x=>({code:x.code,q:N(x.q),p:N(x.p),ca:N(x.q)*N(x.p)})).sort((a,b)=>b.ca-a.ca);
+  const tot=r.reduce((a,x)=>a+x.ca,0)||1;let cum=0;r.forEach((x,i)=>{cum+=x.ca;x.cum=cum;x.pc=cum/tot*100;x.pa=(i+1)/r.length*100;x.cl=(i===0||x.pc<=A+1e-9)?'A':x.pc<=B+1e-9?'B':'C'});
+  $('o-abc').innerHTML=`<div class="scroll"><table><thead><tr><th>Rang</th><th>Code</th><th>Ventes</th><th>Prix</th><th>CA</th><th>% CA</th><th>CA cumulé</th><th>% CA cumulé</th><th>% articles cumulé</th><th>Classe</th></tr></thead><tbody>${r.map((x,i)=>`<tr><td>${i+1}</td><td style="text-align:left">${esc(x.code)}</td><td>${fmt(x.q)}</td><td>${fx(x.p)} €</td><td>${fx(x.ca)} €</td><td>${fx(x.ca/tot*100,1)} %</td><td>${fx(x.cum)} €</td><td>${fx(x.pc,1)} %</td><td>${fx(x.pa,1)} %</td><td><span class="tag t${x.cl}">${x.cl}</span></td></tr>`).join('')}</tbody></table></div>`;
+  const g=['A','B','C'].map(c=>{const l=r.filter(x=>x.cl===c);return{c,n:l.length,ca:l.reduce((a,x)=>a+x.ca,0),codes:l.map(x=>x.code)}});
+  $('s-abc').innerHTML=`<h3 style="margin-top:16px">Synthèse par classe</h3><div class="scroll"><table><thead><tr><th>Classe</th><th>Nb articles</th><th>% articles</th><th>CA</th><th>% CA</th></tr></thead><tbody>${g.map(x=>`<tr><td><span class="tag t${x.c}">${x.c}</span></td><td>${x.n}</td><td>${fx(x.n/(r.length||1)*100,1)} %</td><td>${fx(x.ca)} €</td><td>${fx(x.ca/tot*100,1)} %</td></tr>`).join('')}</tbody></table></div>`;
+  $('k-abc').innerHTML=`<div class="kpi a"><span>CA total</span><b>${fmt(tot,0)} €</b></div><div class="kpi"><span>Classe A</span><b>${fx(g[0].ca/tot*100,1)} %</b><small>du CA avec ${fx(g[0].n/(r.length||1)*100,0)} % des articles</small></div>`;
+  $('c-abc').innerHTML=`Les articles de classe A (${g[0].codes.map(esc).join(', ')}) génèrent ${fx(g[0].ca/tot*100,1)} % du CA, soit ${fmt(g[0].ca,0)} €. Ils doivent être suivis de près et toujours en stock : <b>aucune rupture</b> sur la classe A, puis surveillance de la classe B (${fx(g[1].ca/tot*100,1)} % du CA). La classe C se gère simplement.`;
+  const xa=g[0].n/(r.length||1)*100,xb=(g[0].n+g[1].n)/(r.length||1)*100;
+  plot($('f-abc'),{x:[0,100],y:[0,100],xl:'% cumulé des articles',yl:'% cumulé du CA',xf:v=>v+' %',yf:v=>v+' %',bands:[{x0:0,x1:xa,col:'var(--acc)',l:'A'},{x0:xa,x1:xb,col:'var(--blu)',l:'B'},{x0:xb,x1:100,col:'var(--mut)',l:'C'}],
+   series:[{type:'line',pts:[[0,0],...r.map(x=>[x.pa,x.pc])],dots:1},{type:'line',pts:[[0,0],[100,100]],col:'var(--mut)',dash:1,w:1}],hl:[{y:A,col:'var(--acc)',l:A+' %'},{y:B,col:'var(--blu)',l:B+' %'}]});
+  legend('l-abc',[['var(--acc)','Courbe ABC (articles triés par CA décroissant)'],['var(--mut)','Répartition uniforme (repère)']])}};
+
+const TYP={q:[['u','Unitaire'],['pm','Petite / moyenne'],['g','Grande'],['c','Continue (24h/24, 7j/7)']],
+ ex:{'u-rep':'Moteur de fusée','u-non':'BTP','pm-rep':'Machines-outils','pm-non':'Mobilier urbain','g-rep':'Agro-alimentaire','g-non':'Journaux','c-rep':'Centrale nucléaire, verrerie','c-non':'Centrale nucléaire, verrerie'},
+ mg:{u:[['Méthode des potentiels Métra (MPM)','mpm'],['Méthode GANTT','gantt']],pm:[['Gestion d\'atelier par le poste goulet (plus petite cadence)','indic'],['GANTT','gantt']],g:[['Calcul des besoins / MRP2','mrp'],['Calcul des besoins simplifié si nomenclatures peu complexes','mrp']],c:[['Suivi par les indicateurs (charge, disponibilité, rendement)','indic']]}};
+T.typo={t:'Typologies',d:'Trouver le type de production et l\'outil de gestion adapté',intro:'La typologie se définit avec 2 critères : la quantité et la répétabilité. Clique sur une case ou utilise les listes.',
+ b:()=>`<div class="grid"><div class="card"><h3>Ta production</h3>${sel('q','Quantité',TYP.q)}${sel('r','Répétabilité',[['rep','Répétable'],['non','Non répétable']])}<div id="o-typo"></div></div>
+ <div class="card"><h3>Tableau des typologies</h3><div class="scroll"><table class="typo"><thead><tr><th>Quantité</th><th>Répétable</th><th>Non répétable</th></tr></thead><tbody>${TYP.q.slice(0,3).map(([q,l])=>`<tr><th>${l}</th>${['rep','non'].map(r=>`<td class="c" data-act="typ" data-q="${q}" data-r="${r}" id="ty-${q}-${r}">${TYP.ex[q+'-'+r]}</td>`).join('')}</tr>`).join('')}<tr><th>Continue</th><td colspan="2" class="c" data-act="typ" data-q="c" data-r="rep" id="ty-c-rep">Centrale nucléaire, verrerie</td></tr></tbody></table></div>
+ <p class="note">Le cours associe les outils aux typologies de façon partielle ; les associations affichées suivent ton cours et la pratique courante.</p></div></div>`,
+ c(){const s=S.typo;document.querySelectorAll('.typo td.c').forEach(e=>e.classList.remove('sel'));const id=s.q==='c'?'ty-c-rep':`ty-${s.q}-${s.r}`;$(id)?.classList.add('sel');
+  $('o-typo').innerHTML=`<div class="kpi" style="margin:6px 0 12px"><span>Exemple de production</span><b style="font-size:22px;white-space:normal">${TYP.ex[s.q+'-'+s.r]}</b></div><h3>Outils de gestion adaptés</h3><ul>${TYP.mg[s.q].map(([l,h])=>`<li><a href="#${h}" style="color:var(--acc)">${l}</a></li>`).join('')}</ul>`}};
+
+T.mrp={t:'Calcul des besoins',d:'MRP : besoins bruts, nets, ordres de fabrication (OF) et d\'achat (OA)',intro:'Entrées : commandes clients (besoins bruts du produit fini), nomenclature, stocks, délais, en-cours, données de gestion (lot, coefficient de perte, stock de sécurité). Sortie : planning des OF et OA.',
+ b(){const s=S.mrp;s.bb=Array.from({length:N(s.H)},(_,i)=>s.bb[i]??0);
+  return`<div class="card" style="margin-bottom:16px"><h3>Besoins bruts du produit fini (commandes clients)</h3><div class="row2" style="max-width:420px">${sel('H','Nombre de périodes',[6,7,8,9,10,11,12].map(v=>[v,v+' périodes']),1)}</div><div class="scroll"><table class="edit"><thead><tr>${s.bb.map((_,i)=>`<th>P${i+1}</th>`).join('')}</tr></thead><tbody><tr>${s.bb.map((v,i)=>`<td style="min-width:70px"><input type="number" step="any" data-bb="${i}" value="${esc(v)}"></td>`).join('')}</tr></tbody></table></div></div>
+  <div class="card" style="margin-bottom:16px"><h3>Nomenclature et données de gestion</h3>${etab('arts',[{k:'code',l:'Code',w:70},{k:'nom',l:'Désignation',w:120},{k:'parent',l:'Composant de',w:80},{k:'coef',l:'Qté / parent',t:'n'},{k:'type',l:'Ordre',o:[['OF','OF (fab)'],['OA','OA (achat)']],w:100},{k:'stock',l:'Stock',t:'n'},{k:'ss',l:'Stock sécu',t:'n'},{k:'delai',l:'Délai (pér.)',t:'n'},{k:'lot',l:'Lot (0 = au besoin)',t:'n',w:90},{k:'perte',l:'Perte %',t:'n'},{k:'enc',l:'En-cours',t:'n'},{k:'encp',l:'Reçu en P',t:'n'}])}<p class="note">« Composant de » vide = produit fini. Un code ne doit apparaître qu'une fois.</p></div>
+  <div class="col"><div class="card"><h3>Nomenclature</h3><div class="scroll" id="n-mrp"></div></div><div id="o-mrp"></div></div>`},
+ c(){const s=S.mrp,H=N(s.H);const arts=s.arts.filter(a=>String(a.code).trim());const by={};arts.forEach(a=>by[a.code.trim()]=a);
+  const kids=c=>arts.filter(a=>String(a.parent).trim()===c);const roots=arts.filter(a=>!String(a.parent).trim()||!by[String(a.parent).trim()]);
+  const ord=[];const q=[...roots];const seen=new Set();while(q.length){const a=q.shift();if(seen.has(a.code))continue;seen.add(a.code);ord.push(a);q.push(...kids(a.code.trim()))}
+  const R={};let warn=[];
+  for(const a of ord){const code=a.code.trim(),par=String(a.parent).trim();const bb=Array(H).fill(0);
+   if(!par||!by[par])s.bb.forEach((v,i)=>bb[i]=N(v));else{const L=R[par].lanc;for(let i=0;i<H;i++)bb[i]=Math.ceil(L[i]*N(a.coef)*(1+N(a.perte)/100)-1e-9);if(R[par].avant>0)warn.push(`${esc(code)} : le besoin lié au lancement en retard de ${esc(par)} n'est pas compté.`)}
+   const rec=Array(H).fill(0);if(N(a.enc)>0){const p=Math.round(N(a.encp));if(p>=1&&p<=H)rec[p-1]=N(a.enc)}
+   let st=N(a.stock);const sp=[],bn=[],or=[],lanc=Array(H).fill(0);let avant=0;const d=Math.round(N(a.delai)),lot=N(a.lot),ss=N(a.ss);
+   for(let i=0;i<H;i++){let dis=st+rec[i]-bb[i];let n=0,o=0;if(dis<ss){n=ss-dis;o=lot>0?Math.ceil(n/lot-1e-9)*lot:n;dis+=o}st=dis;sp.push(st);bn.push(n);or.push(o);if(o>0){const j=i-d;if(j>=0)lanc[j]+=o;else{avant+=o;warn.push(`<b>${esc(code)}</b> : ${fmt(o)} unités à lancer ${-j} période(s) avant P1 → <span class="ko">retard</span> (augmenter le stock ou l'en-cours, ou réduire le délai).`)}}}
+   R[code]={a,bb,rec,sp,bn,or,lanc,avant}}
+  const row=(l,v,cls='')=>`<tr class="${cls}"><td>${l}</td>${v.map(x=>`<td>${x?fmt(x):'<span style="opacity:.35">0</span>'}</td>`).join('')}</tr>`;
+  $('o-mrp').innerHTML=(warn.length?`<div class="card" style="margin-bottom:16px;border-color:var(--red)"><h3 class="ko">Alertes</h3><ul>${warn.map(w=>`<li>${w}</li>`).join('')}</ul></div>`:'')+
+   ord.map(a=>{const r=R[a.code.trim()];return`<div class="card" style="margin-bottom:16px"><h3>${esc(a.code)} · ${esc(a.nom)} <span class="tag ${a.type==='OF'?'tA':'tB'}">${a.type}</span></h3><p class="note" style="margin:-6px 0 8px">Stock initial ${fmt(N(a.stock))} · stock de sécurité ${fmt(N(a.ss))} · délai ${fmt(N(a.delai))} pér. · lot ${N(a.lot)>0?fmt(N(a.lot)):'au besoin'}${N(a.perte)?` · perte ${fmt(N(a.perte))} %`:''}</p><div class="scroll"><table><thead><tr><th>Période</th>${r.bb.map((_,i)=>`<th>P${i+1}</th>`).join('')}</tr></thead><tbody>${row('Besoins bruts',r.bb)}${row('Réceptions en-cours',r.rec)}${row('Stock prévisionnel fin',r.sp)}${row('Besoins nets',r.bn)}${row('Réception planifiée',r.or)}${row('Lancement '+a.type,r.lanc,'crit')}</tbody></table></div></div>`}).join('')+
+   `<div class="card"><h3>Planning des OF et OA</h3><div class="fig" id="f-mrp"></div><p class="note">Barre = du lancement à la réception (délai). Orange = OF, bleu = OA.</p></div>`;
+  const bars=[];for(const a of ord){const r=R[a.code.trim()];const d=Math.max(Math.round(N(a.delai)),0);r.lanc.forEach((v,i)=>{if(v>0)bars.push({row:a.code,s:i,d:Math.max(d,.3),lab:fmt(v),col:a.type==='OF'?'var(--acc)':'var(--blu)'})})}
+  if(bars.length)gantt($('f-mrp'),bars,{rows:ord.map(a=>a.code),unit:'périodes (début de P1 = 0)'});else $('f-mrp').innerHTML='<p class="note">Aucun ordre à lancer.</p>';
+  const tree=a=>`<li><b>${esc(a.code)}</b> ${esc(a.nom)} <span class="note">× ${fmt(N(a.coef))}</span>${kids(a.code.trim()).length?`<ul>${kids(a.code.trim()).map(tree).join('')}</ul>`:''}</li>`;
+  $('n-mrp').innerHTML=`<ul>${roots.map(tree).join('')}</ul>`}};
+
+T.mpm={t:'MPM (Métra)',d:'Graphe des potentiels, dates au plus tôt / tard, marges, chemin critique',intro:'Méthode de planification graphique pour les projets unitaires. Chaque case : nom | durée en haut, début au plus tôt | début au plus tard en bas. Antériorités séparées par « et », virgule ou espace.',
+ b:()=>`<div class="grid"><div class="card"><h3>Projet</h3>${etab('t',[{k:'id',l:'Opération',w:80},{k:'d',l:'Durée',t:'n'},{k:'p',l:'Antériorités',w:110}])}</div>
+ <div class="col"><div class="card"><h3>Graphe MPM</h3><div class="kpis" id="k-mpm"></div><div class="mpm" id="g-mpm"></div><p class="note">Orange = chemin critique (début au plus tôt = début au plus tard).</p></div><div class="card"><h3>Dates et marges</h3><div id="o-mpm"></div><p class="concl" id="c-mpm"></p></div></div></div>`,
+ c(){const r=sched(S.mpm.t);if(r.err){$('g-mpm').innerHTML=`<p class="ko" style="padding:12px">${r.err.map(esc).join('<br>')}</p>`;$('o-mpm').innerHTML='';$('c-mpm').innerHTML='';$('k-mpm').innerHTML='';return}
+  $('k-mpm').innerHTML=`<div class="kpi a"><span>Durée du projet</span><b>${fmt(r.T)}</b></div><div class="kpi"><span>Chemin critique</span><b>${esc(r.paths.map(p=>p.join(' – ')).join(' / ')||'—')}</b></div>`;
+  $('g-mpm').innerHTML=mpmGraph(r);$('o-mpm').innerHTML=schedTable(r);
+  const nc=r.ts.filter(t=>!t.crit);$('c-mpm').innerHTML=`Chemin critique : <b>${esc(r.paths.map(p=>p.join(' ; ')).join(' / '))}</b>. Ces opérations doivent être protégées, aucun retard n'est acceptable. ${nc.length?'Marges totales (début au plus tard − début au plus tôt) : '+nc.map(t=>`${esc(t.id)} = ${fmt(t.ls)} − ${fmt(t.es)} = <b>${fmt(t.mt)}</b>`).join(' ; ')+'.':''}`}};
+
+T.gantt={t:'GANTT',d:'Diagramme de Gantt, chemin critique, Gantt des ressources',intro:'Méthode d\'ordonnancement : définir les opérations, leurs durées et leurs liens, puis tracer le GANTT pour obtenir la durée du projet et le chemin critique. Renseigne la colonne ressource (atelier, machine, poste) pour le GANTT des ressources.',
+ b:()=>`<div class="grid"><div class="card"><h3>Opérations</h3>${etab('t',[{k:'id',l:'Opération',w:70},{k:'d',l:'Durée',t:'n'},{k:'p',l:'Antériorités',w:100},{k:'r',l:'Ressource',w:90}])}${sel('u','Unité',[['j','jours'],['h','heures'],['min','minutes'],['sem','semaines']])}</div>
+ <div class="col"><div class="card"><h3>Diagramme de GANTT (au plus tôt)</h3><div class="kpis" id="k-gan"></div><div class="fig" id="f-gan"></div><div class="leg" id="l-gan"></div></div><div class="card" id="rc-gan"><h3>GANTT des ressources</h3><div id="r-gan"></div></div><div class="card"><h3>Analyse</h3><div id="o-gan"></div></div></div></div>`,
+ c(){const r=sched(S.gantt.t),u=S.gantt.u;if(r.err){$('f-gan').innerHTML=`<p class="ko" style="padding:12px">${r.err.map(esc).join('<br>')}</p>`;$('o-gan').innerHTML='';$('k-gan').innerHTML='';return}
+  $('k-gan').innerHTML=`<div class="kpi a"><span>Durée du projet</span><b>${fmt(r.T)} ${u}</b></div><div class="kpi"><span>Chemin critique</span><b>${esc(r.paths.map(p=>p.join(' – ')).join(' / '))}</b></div>`;
+  gantt($('f-gan'),r.order.map(t=>({row:t.id,s:t.es,d:t.d,mt:t.mt,crit:t.crit,lab:fmt(t.d)})),{rows:[...r.ts].sort((a,b)=>a.es-b.es||a.ef-b.ef).map(t=>t.id),unit:u});
+  legend('l-gan',[['var(--acc)','Opération critique'],['var(--blu)','Opération avec marge'],['var(--mut)','Marge totale',1]]);
+  $('o-gan').innerHTML=schedTable(r);
+  const withR=r.ts.filter(t=>t.r);if(!withR.length){$('r-gan').innerHTML='<p class="note">Ajoute une ressource à chaque opération pour voir l\'occupation des ateliers / machines et les conflits.</p>';return}
+  const rows=[...new Set(withR.map(t=>t.r))];const conf=[];for(const a of withR)for(const b of withR)if(a.id<b.id&&a.r===b.r&&a.es<b.ef-1e-9&&b.es<a.ef-1e-9)conf.push(`${a.id} et ${b.id} sur ${a.r}`);
+  $('r-gan').innerHTML=`<div class="fig" id="f-ganr"></div><p class="${conf.length?'ko':'ok'}">${conf.length?'Conflits (deux opérations en même temps sur la même ressource) : '+conf.map(esc).join(' ; ')+'. Décale une des opérations dans sa marge ou ajoute une antériorité.':'Aucun conflit de ressource.'}</p>`;
+  gantt($('f-ganr'),withR.map(t=>({row:t.r,s:t.es,d:t.d,crit:t.crit,lab:t.id,op:.85})),{rows,unit:u})}};
+
+T.lots={t:'Lots de transfert',d:'Comparer lot de fabrication entier et lots de transfert sur une ligne',intro:'Lot de fabrication : quantité indiquée sur l\'OF. Lot de transfert : portion du lot de fabrication transférée d\'un poste à l\'autre, ce qui permet de faire travailler les postes en chevauchement.',
+ b:()=>`<div class="grid"><div class="card"><h3>Ligne de production</h3>${etab('postes',[{k:'n',l:'Poste',w:110},{k:'t',l:'Temps / pièce (min)',t:'n',w:90}])}<div class="row2">${num('Q','Lot de fabrication','pièces')}${num('T','Lot de transfert','pièces')}</div></div>
+ <div class="col"><div class="card"><h3>Résultat</h3><div class="kpis" id="k-lot"></div><p class="concl" id="c-lot"></p></div><div class="card"><h3>Sans lot de transfert (lot entier)</h3><div class="fig" id="f-lot1"></div></div><div class="card"><h3>Avec lots de transfert</h3><div class="fig" id="f-lot2"></div><p class="note">Chaque bloc = un lot de transfert ; les couleurs alternent pour distinguer les lots.</p></div></div></div>`,
+ c(){const s=S.lots,Q=Math.max(0,Math.round(N(s.Q))),Tt=Math.max(1,Math.round(N(s.T)));const P=s.postes.filter(p=>String(p.n).trim()).map(p=>({n:p.n,t:N(p.t)}));if(!P.length||!Q)return;
+  const run=lot=>{const lots=[];for(let q=Q;q>0;q-=lot)lots.push(Math.min(lot,q));const end=P.map(()=>0),bars=[];lots.forEach((sz,k)=>{let prev=0;P.forEach((p,j)=>{const st=Math.max(prev,end[j]),d=sz*p.t;bars.push({row:p.n,s:st,d,col:k%2?'var(--blu)':'var(--acc)',lab:lots.length<=12?sz:''});end[j]=st+d;prev=st+d})});return{T:end.at(-1),bars,n:lots.length}};
+  const a=run(Q),b=run(Tt);const g=a.T-b.T;const goul=P.reduce((m,p)=>p.t>m.t?p:m,P[0]);
+  $('k-lot').innerHTML=`<div class="kpi"><span>Lot entier</span><b>${fmt(a.T,1)} min</b><small>${fmt(a.T/60,2)} h</small></div><div class="kpi a"><span>Avec lots de ${Tt}</span><b>${fmt(b.T,1)} min</b><small>${fmt(b.T/60,2)} h · ${b.n} transferts</small></div><div class="kpi"><span>Gain</span><b>${fx(g/a.T*100,1)} %</b><small>${fmt(g,1)} min</small></div>`;
+  $('c-lot').innerHTML=`Le transfert par lots de ${Tt} pièces fait gagner ${fmt(g,1)} min sur un lot de ${Q}. Le poste le plus lent (<b>${esc(goul.n)}</b>, ${fmt(goul.t)} min/pièce) impose la cadence : c'est le poste goulet de la ligne.`;
+  const rows=P.map(p=>p.n);gantt($('f-lot1'),a.bars,{rows,unit:'minutes'});gantt($('f-lot2'),b.bars,{rows,unit:'minutes'})}};
+
+T.indic={t:'Indicateurs',d:'Charge, capacité, taux de charge, disponibilité, utilisation, poste goulet, rendement',intro:'Taux de charge Tc = charge / capacité réelle · Taux de disponibilité Td = capacité réelle / capacité théorique · Taux d\'utilisation Tu = charge / capacité théorique = Tc × Td. Un poste avec Tc > 100 % est un poste goulet.',
+ b:()=>`<div class="grid"><div class="col"><div class="card"><h3>Demande et postes</h3>${num('q','Demande à produire (clients + ordonnancement)','pièces')}${etab('postes',[{k:'n',l:'Poste',w:100},{k:'tu',l:'Temps / pièce (min)',t:'n'},{k:'autre',l:'Autre charge (h)',t:'n'},{k:'ct',l:'Capacité théorique (h)',t:'n'},{k:'arr',l:'Arrêts (h)',t:'n'}])}<p class="note">Arrêts = pauses, réglages, maintenance… Capacité réelle = théorique − arrêts.</p></div>
+ <div class="card"><h3>Rendement</h3><div class="row2">${num('e','Quantité en entrée','pièces')}${num('s','Quantité en sortie (bonnes)','pièces')}</div><div id="r-ind"></div></div></div>
+ <div class="col"><div class="card"><h3>Taux de charge par poste</h3><div class="kpis" id="k-ind"></div><div class="fig" id="f-ind"></div><div class="leg" id="l-ind"></div></div><div class="card"><h3>Tableau charge / capacité</h3><div id="o-ind"></div><p class="concl" id="c-ind"></p></div></div></div>`,
+ c(){const s=S.indic,q=N(s.q);const P=s.postes.filter(p=>String(p.n).trim()).map(p=>{const ch=q*N(p.tu)/60+N(p.autre),ct=N(p.ct),cr=ct-N(p.arr);return{n:p.n,ch,ct,cr,tc:ch/cr,td:cr/ct,tu:ch/ct}});
+  const st=x=>x>1+1e-9?'<span class="ko">Goulet : il faut agir</span>':Math.abs(x-1)<1e-9?'<span class="wa">Aucune marge</span>':x>=.95?'<span class="wa">Proche de la limite</span>':'<span class="ok">OK</span>';
+  $('o-ind').innerHTML=`<div class="scroll"><table><thead><tr><th>Poste</th><th>Charge (h)</th><th>Cap. théorique</th><th>Cap. réelle</th><th>Tc</th><th>Td</th><th>Tu = Tc×Td</th><th>État</th></tr></thead><tbody>${P.map(p=>`<tr class="${p.tc>1?'crit':''}"><td>${esc(p.n)}</td><td>${fx(p.ch)}</td><td>${fx(p.ct)}</td><td>${fx(p.cr)}</td><td>${pc(p.tc)}</td><td>${pc(p.td)}</td><td>${pc(p.tu)}</td><td style="text-align:left">${st(p.tc)}</td></tr>`).join('')}</tbody></table></div>`;
+  const G=P.filter(p=>p.tc>1);const mx=P.reduce((m,p)=>p.tc>m.tc?p:m,P[0]||{tc:0,n:'—'});
+  $('k-ind').innerHTML=`<div class="kpi a"><span>Poste le plus chargé</span><b>${esc(mx.n)}</b><small>Tc = ${pc(mx.tc)}</small></div><div class="kpi"><span>Postes goulets</span><b>${G.length}</b></div>`;
+  $('c-ind').innerHTML=G.length?`Poste(s) goulet(s) : <b>${G.map(p=>esc(p.n)).join(', ')}</b>. Charge &gt; capacité réelle : la demande ne peut pas être tenue. Actions possibles : heures supplémentaires, réduire les arrêts (améliorer Td), réduire le temps unitaire, sous-traiter, répartir la charge.`:'Tous les postes ont un taux de charge ≤ 100 % : la demande peut être produite. Objectif courant : Tc ≈ 95 % et Td ≈ 95 %.';
+  const ymax=Math.max(1.3,...P.map(p=>p.tc))*100;
+  plot($('f-ind'),{x:[-.5,P.length-.5],y:[0,ymax],yf:v=>v+' %',xt:P.map((p,i)=>({v:i,l:p.n})),yl:'Taux de charge',series:[{type:'bars',bw:.6,pts:P.map((p,i)=>[i,p.tc*100]),colf:(x,y)=>y>100?'var(--red)':y>=95?'var(--ylw)':'var(--grn)'}],hl:[{y:100,col:'var(--ink)',l:'100 % capacité réelle',dash:'0'},{y:95,col:'var(--mut)',l:'Objectif 95 %'}]});
+  legend('l-ind',[['var(--grn)','< 95 %'],['var(--ylw)','95 à 100 %'],['var(--red)','> 100 % : goulet']]);
+  const R=N(s.s)/N(s.e);$('r-ind').innerHTML=`<div class="kpi a"><span>R = quantité sortie / quantité entrée</span><b>${pc(R)}</b><small>${fmt(N(s.e)-N(s.s))} pièces perdues</small></div>`}};
+
+T.msp={t:'MSP / SPC',d:'Histogramme (CNOMO), droite de Henry, capabilité machine',intro:'La MSP surveille le procédé (5M : machine, main-d\'œuvre, matière, milieu, méthode) par des méthodes statistiques. Colle tes mesures, l\'appli trace l\'histogramme, teste la normalité (droite de Henry) puis calcule la capabilité.',
+ b:()=>`<div class="grid"><div class="col"><div class="card"><h3>Mesures de l'échantillon</h3><label class="f"><span>Valeurs (séparées par espace, retour à la ligne ou point-virgule)</span><textarea data-k="data">${esc(S.msp.data)}</textarea></label>${sel('meth','Nombre de classes',[['sqrt','√N'],['sturges','1 + 10·log N / 3']])}</div>
+ <div class="card"><h3>Tolérances</h3><div class="row2">${num('ti','Tolérance inf. Ti')}${num('ts','Tolérance sup. Ts')}</div>${num('seuil','Capabilité exigée (Cm et Cmk ≥)')}</div></div>
+ <div class="col"><div class="card"><h3>1 · Histogramme</h3><div class="kpis" id="k-msp"></div><div class="fig" id="f-hist"></div><div class="leg" id="l-hist"></div><details style="margin-top:8px"><summary>Tableau des effectifs</summary><div id="t-msp"></div></details></div>
+ <div class="card"><h3>2 · Droite de Henry</h3><div class="fig" id="f-hen"></div><p class="concl" id="c-hen"></p></div>
+ <div class="card"><h3>3 · Capabilité machine</h3><div class="kpis" id="k-cap"></div><div class="fig" id="f-cap" style="min-height:240px"></div><p class="concl" id="c-cap"></p></div></div></div>`,
+ c(){const s=S.msp;const v=String(s.data).split(/[\s;]+/).map(x=>parseFloat(x.replace(',','.'))).filter(Number.isFinite);const n=v.length;if(n<5){$('k-msp').innerHTML='<p class="ko">Il faut au moins 5 valeurs.</p>';return}
+  const xg=Math.max(...v),xp=Math.min(...v),E=xg-xp,m=v.reduce((a,b)=>a+b,0)/n,sd=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/(n-1));
+  const kr=s.meth==='sqrt'?Math.sqrt(n):1+10*Math.log10(n)/3,k=Math.max(2,Math.round(kr)),w=E/k||1;
+  const cls=Array.from({length:k},(_,i)=>({a:xp+i*w,b:xp+(i+1)*w,n:0}));for(const x of v){let i=Math.floor((x-xp)/w);if(i>=k)i=k-1;if(i<0)i=0;cls[i].n++}
+  let c=0;cls.forEach(q=>{c+=q.n;q.cum=c;q.F=c/n});const dec=Math.max(2,Math.min(5,(String(v[0]).split('.')[1]||'').length+1));
+  $('k-msp').innerHTML=`<div class="kpi"><span>Taille N</span><b>${n}</b></div><div class="kpi"><span>xp / xg</span><b style="font-size:20px">${fmt(xp,4)} / ${fmt(xg,4)}</b></div><div class="kpi"><span>Étendue</span><b>${fmt(E,4)}</b></div><div class="kpi"><span>Classes</span><b>${k}</b><small>calcul : ${fx(kr,2)}</small></div><div class="kpi"><span>Largeur de classe</span><b>${fmt(w,5)}</b></div><div class="kpi a"><span>Moyenne x̄ / écart-type σ</span><b style="font-size:20px">${fmt(m,4)} / ${fmt(sd,4)}</b></div>`;
+  $('t-msp').innerHTML=`<div class="scroll"><table><thead><tr><th>Classe</th><th>Bornes</th><th>Effectif</th><th>Fréquence</th><th>Effectif cumulé</th><th>Fréq. cumulée</th></tr></thead><tbody>${cls.map((q,i)=>`<tr><td>${i+1}</td><td>[${fx(q.a,dec)} ; ${fx(q.b,dec)}${i===k-1?']':'['}</td><td>${q.n}</td><td>${pc(q.n/n)}</td><td>${q.cum}</td><td>${pc(q.F)}</td></tr>`).join('')}</tbody></table></div>`;
+  const ymax=Math.max(...cls.map(q=>q.n))*1.2;const curve=[];for(let i=0;i<=80;i++){const x=xp-w+(E+2*w)*i/80;curve.push([x,pdf(x,m,sd)*n*w])}
+  plot($('f-hist'),{x:[xp-w,xg+w],y:[0,Math.max(ymax,...curve.map(p=>p[1]))],yl:'Effectif',series:[{type:'bars',bw:w,pts:cls.map(q=>[(q.a+q.b)/2,q.n])},{type:'line',pts:curve,col:'var(--blu)'}],vl:[{x:m,col:'var(--ink)',l:'x̄'}]});
+  legend('l-hist',[['var(--acc)','Effectifs par classe'],['var(--blu)','Loi normale de même moyenne et écart-type']]);
+  const pts=cls.filter(q=>q.F>0&&q.F<1).map(q=>[q.b,invN(q.F)]);let cH='';
+  if(pts.length>=2){const mx=pts.reduce((a,p)=>a+p[0],0)/pts.length,my=pts.reduce((a,p)=>a+p[1],0)/pts.length;let sxy=0,sxx=0,syy=0;for(const[x,y]of pts){sxy+=(x-mx)*(y-my);sxx+=(x-mx)**2;syy+=(y-my)**2}
+   const a=sxy/sxx,b=my-a*mx,r2=sxy*sxy/(sxx*syy),mH=-b/a,sH=1/a;const xr=[xp-w*.5,xg+w*.5];
+   const pr=[.01,.05,.1,.25,.5,.75,.9,.95,.99];
+   plot($('f-hen'),{x:xr,y:[-2.6,2.6],ml:52,yt:pr.map(p=>({v:invN(p),l:fmt(p*100)+' %'})),yl:'Fréquences cumulées (échelle gaussienne)',xl:'Borne supérieure de classe',series:[{type:'line',pts:(()=>{const xa=Math.max(xr[0],Math.min((-2.6-b)/a,(2.6-b)/a)),xb=Math.min(xr[1],Math.max((-2.6-b)/a,(2.6-b)/a));return[[xa,a*xa+b],[xb,a*xb+b]]})(),col:'var(--blu)'},{type:'pts',pts,r:5}],hl:[{y:0,col:'var(--mut)',l:'50 % → moyenne'}]});
+   const okN=r2>=.98;cH=`R² = <b>${fx(r2,4)}</b> : ${okN?'les points sont <span class="ok">alignés</span>, la production suit une loi normale.':'les points <span class="ko">s\'écartent</span> de la droite, la normalité est douteuse (vérifie la machine, les 5M ou la taille de l\'échantillon).'} Lecture graphique : moyenne ≈ ${fmt(mH,4)} (à 50 %), écart-type ≈ ${fmt(sH,4)} (pente de la droite). <span class="note">Seuil R² ≥ 0,98 indicatif.</span>`}
+  else cH='Pas assez de classes pour tracer la droite.';$('c-hen').innerHTML=cH;
+  const ti=N(s.ti),ts=N(s.ts),IT=ts-ti,cm=IT/(6*sd),cmk=Math.min(ts-m,m-ti)/(3*sd),L=N(s.seuil);
+  $('k-cap').innerHTML=`<div class="kpi"><span>IT = Ts − Ti</span><b>${fmt(IT,4)}</b></div><div class="kpi ${cm>=L?'':'a'}"><span>Cm = IT / 6σ</span><b class="${cm>=L?'ok':'ko'}">${fx(cm,2)}</b></div><div class="kpi"><span>Cmk = min(Ts − x̄ ; x̄ − Ti) / 3σ</span><b class="${cmk>=L?'ok':'ko'}">${fx(cmk,2)}</b></div>`;
+  $('c-cap').innerHTML=cm>=L&&cmk>=L?`Cm et Cmk ≥ ${fx(L,2)} : la machine est <span class="ok">capable</span> de fabriquer dans les tolérances.`:cm>=L?`Cm ≥ ${fx(L,2)} mais Cmk &lt; ${fx(L,2)} : la dispersion est bonne mais la machine est <span class="ko">mal centrée</span> (décalage de ${fmt(m-(ti+ts)/2,4)}). Il faut recentrer le réglage.`:`Cm &lt; ${fx(L,2)} : la dispersion de la machine est <span class="ko">trop grande</span> pour l'intervalle de tolérance. La machine n'est pas capable.`;
+  const lo=Math.min(ti,m-4*sd),hi=Math.max(ts,m+4*sd),cv=[];for(let i=0;i<=100;i++){const x=lo+(hi-lo)*i/100;cv.push([x,pdf(x,m,sd)])}
+  plot($('f-cap'),{x:[lo,hi],y:[0,pdf(m,m,sd)*1.25],yt:[],series:[{type:'area',pts:cv,col:'var(--acc)'}],vl:[{x:ti,col:'var(--red)',l:'Ti',dash:'0'},{x:ts,col:'var(--red)',l:'Ts',dash:'0'},{x:m-3*sd,col:'var(--blu)',l:'x̄−3σ',ly:48},{x:m+3*sd,col:'var(--blu)',l:'x̄+3σ',ly:48},{x:m,col:'var(--ink)',l:'x̄',ly:66}]})}};
+
+const S5=[['Supprimer l\'inutile','Trier : ne garder que ce qui sert au poste.'],['Situer les choses utiles','Ranger : une place pour chaque chose.'],['Scintiller','Nettoyer : le nettoyage permet aussi d\'inspecter.'],['Standardiser','Formaliser les règles et former le personnel.'],['Suivi','Suivre pour améliorer ou reformaliser.']];
+const CH=['La direction est impliquée','Les opérateurs participent à l\'analyse des causes','Les opérateurs participent à la recherche des solutions','Le travail se fait au plus proche du terrain','Retour régulier sur l\'avancement du projet','Explications permanentes aux équipes'];
+T.s5={t:'5S',d:'Auditer un poste de travail et visualiser le niveau atteint',intro:'Méthode d\'amélioration des postes de travail en 5 étapes. Note chaque étape de 0 (rien de fait) à 4 (exemplaire), et coche les conditions de réussite.',
+ b:()=>`<div class="grid"><div class="col"><div class="card"><h3>Audit du poste</h3><div class="s5">${S5.map(([t,d],i)=>`<label><b>${i+1}. ${t}</b><output id="o5-${i}"></output><span class="note" style="grid-column:1/-1">${d}</span><input type="range" min="0" max="4" step="1" data-s5="${i}" value="${S.s5.sc[i]}"></label>`).join('')}</div></div>
+ <div class="card"><h3>Conditions de réussite</h3>${CH.map((c,i)=>`<label style="display:flex;gap:10px;align-items:center;margin:6px 0"><input type="checkbox" data-ch="${i}" ${S.s5.ch[i]?'checked':''} style="width:22px;min-height:22px;accent-color:var(--acc)">${c}</label>`).join('')}</div></div>
+ <div class="col"><div class="card"><h3>Radar 5S</h3><div class="kpis" id="k-5s"></div><div class="fig" id="f-5s" style="min-height:360px"></div></div><div class="card"><h3>Plan d'action</h3><div id="o-5s"></div></div></div></div>`,
+ c(){const sc=S.s5.sc.map(N);sc.forEach((v,i)=>$('o5-'+i).textContent=v+' / 4');const tot=sc.reduce((a,b)=>a+b,0),nc=S.s5.ch.filter(Boolean).length;
+  $('k-5s').innerHTML=`<div class="kpi a"><span>Score 5S</span><b>${tot} / 20</b><small>${fx(tot/20*100,0)} %</small></div><div class="kpi"><span>Conditions réunies</span><b>${nc} / ${CH.length}</b></div>`;
+  fig($('f-5s'),(W,H)=>{const cx=W/2,cy=H/2+6,R=Math.min(W,H)/2-60;const P=(i,r)=>[cx+r*Math.sin(i*2*Math.PI/5),cy-r*Math.cos(i*2*Math.PI/5)];let s='';
+   for(let l=1;l<=4;l++)s+=`<polygon points="${[0,1,2,3,4].map(i=>P(i,R*l/4).join(',')).join(' ')}" fill="none" style="stroke:var(--line)"/>`;
+   for(let i=0;i<5;i++){const[x,y]=P(i,R),[lx,ly]=P(i,R+24);s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" style="stroke:var(--line)"/><text class="lb" x="${lx}" y="${ly+4}" text-anchor="middle">${i+1}. ${['Supprimer','Situer','Scintiller','Standardiser','Suivi'][i]}</text>`}
+   s+=`<polygon points="${sc.map((v,i)=>P(i,R*v/4).join(',')).join(' ')}" style="fill:var(--acc);stroke:var(--acc)" fill-opacity=".25" stroke-width="2.5"/>`;sc.forEach((v,i)=>{const[x,y]=P(i,R*v/4);s+=`<circle cx="${x}" cy="${y}" r="4" style="fill:var(--acc)"/>`});return s});
+  const low=sc.map((v,i)=>[v,i]).filter(([v])=>v<3).sort((a,b)=>a[0]-b[0]);
+  $('o-5s').innerHTML=(low.length?`<p>Étapes à travailler en priorité (dans l'ordre des 5S, chaque étape s'appuie sur la précédente) :</p><ul>${low.sort((a,b)=>a[1]-b[1]).map(([v,i])=>`<li><b>${S5[i][0]}</b> (${v}/4) : ${S5[i][1]}</li>`).join('')}</ul>`:'<p class="ok">Toutes les étapes sont à 3 ou plus : maintenir par le suivi.</p>')+(nc<CH.length?`<p class="wa">Conditions manquantes : ${CH.filter((_,i)=>!S.s5.ch[i]).join(' ; ')}.</p>`:'')}};
+
+T.wilson={t:'Quantité économique',d:'Formule de Wilson, coûts de stockage et de lancement, taux de stockage',intro:'Coût total = coût de stockage + coût de lancement (ou d\'approvisionnement). Cs(Q) = Q/2 × a × t% ; Cl(Q) = N/Q × cl. La quantité économique minimise le coût total : Q* = √(2·N·cl / (a·t%)).',
+ b:()=>`<div class="grid"><div class="col"><div class="card"><h3>Données</h3>${num('N','N : quantité consommée sur la période','unités')}${num('cl','cl : coût d\'un lancement / d\'une commande','€')}${num('a','a : coût d\'achat unitaire','€')}${num('t','t : taux de stockage','%')}${num('j','Jours par an','j')}${num('ss','Stock de sécurité (pour le stock moyen)','unités')}</div>
+ <div class="card"><h3>Calcul du taux de stockage</h3>${etab('dep',[{k:'n',l:'Poste de dépense annuel',w:150},{k:'v',l:'Montant (€)',t:'n',w:90}])}${num('vm','Valeur moyenne du stock','€')}<div id="t-wil"></div></div></div>
+ <div class="col"><div class="card"><h3>Résultats</h3><div class="kpis" id="k-wil"></div><p class="concl" id="c-wil"></p></div><div class="card"><h3>Courbes des coûts</h3><div class="fig" id="f-wil"></div><div class="leg" id="l-wil"></div></div></div></div>`,
+ c(){const s=S.wilson,n=N(s.N),cl=N(s.cl),a=N(s.a),t=N(s.t)/100,J=N(s.j)||360;const Q=Math.sqrt(2*n*cl/(a*t)),nb=n/Q,fr=J/nb;const Cs=q=>q/2*a*t,Cl=q=>n/q*cl;
+  const dep=s.dep.reduce((x,d)=>x+N(d.v),0),tc=dep/N(s.vm)*100;
+  $('t-wil').innerHTML=`<p>t = ${fmt(dep,0)} / ${fmt(N(s.vm),0)} × 100 = <b>${fx(tc,2)} %</b> <span class="note">(dans l'industrie : 25 à 30 %)</span></p><button data-act="usert">Utiliser ce taux dans le calcul</button>`;
+  if(!(Q>0)){$('k-wil').innerHTML='<p class="ko">Vérifie les données (valeurs &gt; 0).</p>';return}
+  $('k-wil').innerHTML=`<div class="kpi a"><span>Quantité économique Q*</span><b>${fmt(Q,1)}</b><small>soit ${fmt(Math.ceil(Q))} unités par commande</small></div><div class="kpi"><span>Nombre de commandes N/Q*</span><b>${fx(nb,2)}</b><small>par an</small></div><div class="kpi"><span>Fréquence d'appro</span><b>${fx(fr,2)} j</b><small>une commande tous les ${fmt(fr,1)} jours</small></div><div class="kpi"><span>Coût de stockage</span><b>${fmt(Cs(Q),0)} €</b></div><div class="kpi"><span>Coût de lancement</span><b>${fmt(Cl(Q),0)} €</b></div><div class="kpi"><span>Coût total minimal</span><b>${fmt(Cs(Q)+Cl(Q),0)} €</b></div><div class="kpi"><span>Stock moyen = Q*/2 + SS</span><b>${fmt(Q/2+N(s.ss),0)}</b></div>`;
+  $('c-wil').innerHTML=`Q* = √(2 × ${fmt(n)} × ${fmt(cl)} / (${fmt(a)} × ${fmt(t,4)})) = <b>${fmt(Q,1)}</b>. On passe ${fx(nb,1)} commandes par an, soit une tous les ${J} / ${fx(nb,2)} = <b>${fx(fr,2)} jours</b>. Au point Q*, coût de stockage = coût de lancement.`;
+  const xs=[];for(let i=1;i<=120;i++)xs.push(Q*.2+Q*2.8*i/120);const ym=Cs(Q)+Cl(Q);
+  plot($('f-wil'),{x:[xs[0],xs.at(-1)],y:[0,ym*2],xl:'Quantité par commande Q',yl:'Coût (€)',series:[{type:'line',pts:xs.map(q=>[q,Cs(q)]),col:'var(--blu)'},{type:'line',pts:xs.map(q=>[q,Cl(q)]),col:'var(--grn)'},{type:'line',pts:xs.map(q=>[q,Cs(q)+Cl(q)]),col:'var(--acc)',w:3}],vl:[{x:Q,col:'var(--ink)',l:'Q* = '+fmt(Q,0)}]});
+  legend('l-wil',[['var(--acc)','Coût total'],['var(--blu)','Coût de stockage'],['var(--grn)','Coût de lancement / appro']])}};
+
+T.seuil={t:'Seuil & stock sécu',d:'Seuil d\'approvisionnement (point de commande) et stock de sécurité',intro:'Le stock de sécurité absorbe un retard de livraison et une surconsommation pendant le délai de livraison (c\'est un stock « mort »). Seuil d\'appro = consommation pendant le délai fournisseur + stock de sécurité.',
+ b:()=>`<div class="grid"><div class="col"><div class="card"><h3>Données</h3>${num('c','Consommation moyenne','unités / jour')}${num('d','Délai fournisseur','jours')}${num('Q','Quantité commandée','unités')}</div>
+ <div class="card"><h3>Stock de sécurité</h3>${num('rmax','Retard de livraison à couvrir','jours')}${num('sur','Surconsommation possible pendant le délai','%')}</div>
+ <div class="card"><h3>Scénario</h3>${sel('scen','Simuler un aléa au 2e cycle',[['non','Aucun aléa'],['retard','Retard de livraison'],['sur','Surconsommation']])}${num('retard','Retard simulé','jours')}</div></div>
+ <div class="col"><div class="card"><h3>Résultats</h3><div class="kpis" id="k-seu"></div><p class="concl" id="c-seu"></p></div><div class="card"><h3>Courbe des stocks</h3><div class="fig" id="f-seu" style="min-height:360px"></div><div class="leg" id="l-seu"></div></div></div></div>`,
+ c(){const s=S.seuil,c=N(s.c),d=N(s.d),Q=N(s.Q);const ss1=c*N(s.rmax),ss2=c*d*N(s.sur)/100,SS=ss1+ss2,Sa=c*d+SS;
+  $('k-seu').innerHTML=`<div class="kpi"><span>Stock de sécurité</span><b>${fmt(SS,1)}</b><small>${fmt(ss1,1)} (retard) + ${fmt(ss2,1)} (surconso)</small></div><div class="kpi a"><span>Seuil d'approvisionnement</span><b>${fmt(Sa,1)}</b><small>${fmt(c)} × ${fmt(d)} + ${fmt(SS,1)}</small></div><div class="kpi"><span>Stock maximum</span><b>${fmt(SS+Q,1)}</b><small>SS + Q</small></div><div class="kpi"><span>Durée d'un cycle</span><b>${fmt(Q/c,1)} j</b></div>`;
+  $('c-seu').innerHTML=`Quand le stock descend à <b>${fmt(Sa,1)}</b> unités, on passe commande de ${fmt(Q)} unités. Pendant les ${fmt(d)} jours de délai, on consomme ${fmt(c*d,1)} unités : la livraison arrive quand il reste le stock de sécurité (${fmt(SS,1)}).`;
+  const pts=[];let st=SS+Q,day=0,arr=null,cyc=0;const end=Math.max(3*Q/c+d+N(s.retard),10),dt=end/400;let orders=[];
+  while(day<=end){let cc=c;if(S.seuil.scen==='sur'&&cyc===1)cc=c*(1+N(s.sur)/100*1.5);pts.push([day,st]);
+   if(arr!==null&&day>=arr.t-1e-9){st+=Q;orders.push({o:arr.o,t:arr.t});arr=null;cyc++;pts.push([day,st])}
+   if(arr===null&&st<=Sa+1e-9){const extra=S.seuil.scen==='retard'&&cyc===1?N(s.retard):0;arr={o:day,t:day+d+extra}}
+   st-=cc*dt;day+=dt}
+  const ymin=Math.min(0,...pts.map(p=>p[1]));
+  plot($('f-seu'),{x:[0,end],y:[ymin,(SS+Q)*1.12],xl:'Temps (jours)',yl:'Quantité en stock',series:[{type:'area',pts,col:'var(--acc)'}],hl:[{y:Sa,col:'var(--blu)',l:'Seuil d\'appro'},{y:SS,col:'var(--grn)',l:'Stock de sécurité'},...(ymin<0?[{y:0,col:'var(--red)',l:'Rupture',dash:'0'}]:[])],
+   extra:(X,Y)=>orders.map(o=>`<line x1="${X(o.o)}" x2="${X(o.t)}" y1="${Y(Sa)+14}" y2="${Y(Sa)+14}" style="stroke:var(--ink)" stroke-width="1.5"/><line x1="${X(o.o)}" x2="${X(o.o)}" y1="${Y(Sa)+8}" y2="${Y(Sa)+20}" style="stroke:var(--ink)"/><line x1="${X(o.t)}" x2="${X(o.t)}" y1="${Y(Sa)+8}" y2="${Y(Sa)+20}" style="stroke:var(--ink)"/><text class="lb" x="${(X(o.o)+X(o.t))/2}" y="${Y(Sa)+34}" text-anchor="middle">délai ${fmt(o.t-o.o,1)} j</text>`).join('')});
+  legend('l-seu',[['var(--acc)','Stock'],['var(--blu)','Seuil d\'approvisionnement'],['var(--grn)','Stock de sécurité']])}};
+
+const AP={cal:{n:'Méthode calendaire',q:'Quantité fixe, date fixe',u:'Produit à consommation très régulière',av:'Gestion des stocks simplifiée ; économies d\'échelle négociables (quantités souvent élevées).',in:'Si la quantité est mal déterminée ou la consommation irrégulière : cumul de stocks (hausse des coûts de stockage) ou rupture (hausse des coûts de lancement).',p:[['T','Période entre commandes','jours'],['Q','Quantité commandée','unités']]},
+ pc:{n:'Méthode du point de commande',q:'Quantité fixe, date variable',u:'Produit phare de l\'entreprise',av:'Basée sur la quantité économique : minimise les coûts de gestion.',in:'Nécessite souvent un stock de sécurité pour compenser les aléas de consommation, et un suivi permanent du stock.',p:[['S','Seuil de commande (point de commande)','unités'],['Q','Quantité commandée (Q*)','unités']]},
+ rec:{n:'Méthode de recomplètement',q:'Quantité variable, date fixe',u:'Consommation plus ou moins régulière (produits coûteux et/ou volumineux)',av:'Gestion simplifiée et maîtrise des immobilisations financières.',in:'Si la consommation devient très irrégulière : risque de rupture ou de surstockage.',p:[['T','Période entre commandes','jours'],['niv','Niveau de recomplètement','unités']]},
+ var:{n:'Date et quantité variables',q:'Quantité variable, date variable',u:'Produits = projets, produits coûteux',av:'Stock au plus juste du besoin réel (non complété dans le cours).',in:'Gestion lourde : calcul à chaque commande, suivi permanent (non complété dans le cours).',p:[['S','Seuil de commande','unités'],['niv','Niveau de recomplètement','unités']]}};
+T.appro={t:'Méthodes d\'appro',d:'Simuler les 4 méthodes d\'approvisionnement et comparer',intro:'Les 4 méthodes se distinguent par la quantité (fixe ou variable) et la date (fixe ou variable). Choisis une méthode et ses paramètres : l\'appli simule l\'évolution du stock jour par jour avec une consommation qui varie.',
+ b(){const m=AP[S.appro.m];return`<div class="grid"><div class="col"><div class="card"><h3>Méthode</h3>${sel('m','Méthode',Object.entries(AP).map(([k,v])=>[k,v.n]),1)}<p><b>${m.q}</b><br><span class="note">${m.u}</span></p>${m.p.map(([k,l,u])=>num(k,l,u)).join('')}</div>
+ <div class="card"><h3>Consommation et délai</h3>${num('c','Consommation moyenne','unités / jour')}${num('v','Variation de la consommation','± %')}${num('L','Délai de livraison','jours')}${num('s0','Stock de départ','unités')}${num('jours','Durée simulée','jours')}${num('seed','Tirage (change la série aléatoire)')}</div></div>
+ <div class="col"><div class="card"><h3>${m.n}</h3><div class="kpis" id="k-app"></div><div class="fig" id="f-app" style="min-height:340px"></div><div class="leg" id="l-app"></div></div>
+ <div class="card"><h3>Avantages / inconvénients</h3><p><b class="ok">Avantages :</b> ${m.av}</p><p><b class="ko">Inconvénients :</b> ${m.in}</p><div class="scroll"><table class="typo"><thead><tr><th>Quantité \\ Date</th><th>Fixe</th><th>Variable</th></tr></thead><tbody><tr><th>Fixe</th><td class="${S.appro.m==='cal'?'sel':''}">Calendaire</td><td class="${S.appro.m==='pc'?'sel':''}">Point de commande</td></tr><tr><th>Variable</th><td class="${S.appro.m==='rec'?'sel':''}">Recomplètement</td><td class="${S.appro.m==='var'?'sel':''}">Date et quantité variables</td></tr></tbody></table></div></div></div></div>`},
+ c(){const s=S.appro,m=s.m,c=N(s.c),v=N(s.v)/100,L=Math.max(0,Math.round(N(s.L))),J=Math.max(10,Math.round(N(s.jours)));let seed=Math.round(N(s.seed))||1;const rnd=()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296};
+  let st=N(s.s0);const pipe=[];const pts=[[0,st]],ord=[];let rupt=0,manq=0,sum=0;
+  for(let d=1;d<=J;d++){for(const p of pipe.filter(p=>p.t===d)){st+=p.q}for(let i=pipe.length-1;i>=0;i--)if(pipe[i].t===d)pipe.splice(i,1);
+   const dem=Math.max(0,c*(1+v*(2*rnd()-1)));if(st>=dem)st-=dem;else{manq+=dem-st;st=0;rupt++}
+   const pos=st+pipe.reduce((a,p)=>a+p.q,0);let q=0;
+   if(m==='cal'&&d%Math.max(1,Math.round(N(s.T)))===0)q=N(s.Q);
+   if(m==='pc'&&pos<=N(s.S))q=N(s.Q);
+   if(m==='rec'&&d%Math.max(1,Math.round(N(s.T)))===0)q=Math.max(0,N(s.niv)-pos);
+   if(m==='var'&&pos<=N(s.S))q=Math.max(0,N(s.niv)-pos);
+   if(q>0){pipe.push({t:d+L,q});ord.push([d,q])}sum+=st;pts.push([d,st])}
+  const ymax=Math.max(...pts.map(p=>p[1]))*1.1||10;
+  $('k-app').innerHTML=`<div class="kpi"><span>Commandes passées</span><b>${ord.length}</b><small>moy. ${fmt(ord.reduce((a,o)=>a+o[1],0)/(ord.length||1),0)} unités</small></div><div class="kpi"><span>Stock moyen</span><b>${fmt(sum/J,0)}</b></div><div class="kpi ${rupt?'a':''}"><span>Jours de rupture</span><b class="${rupt?'ko':'ok'}">${rupt}</b><small>${fmt(manq,0)} unités manquantes</small></div>`;
+  plot($('f-app'),{x:[0,J],y:[0,ymax],xl:'Jours',yl:'Stock',series:[{type:'area',pts,col:'var(--acc)'}],hl:(m==='pc'||m==='var')?[{y:N(s.S),col:'var(--blu)',l:'Seuil'}]:m==='rec'?[{y:N(s.niv),col:'var(--blu)',l:'Niveau de recomplètement'}]:[],
+   extra:(X,Y,mm,iw,ih)=>ord.map(([d])=>`<path d="M${X(d)},${mm.t+ih}l-4,8h8z" style="fill:var(--blu)"/>`).join('')+ord.map(([d])=>`<path d="M${X(d+L)},${mm.t+ih}l-4,8h8z" style="fill:var(--grn)"/>`).join('')});
+  legend('l-app',[['var(--acc)','Stock'],['var(--blu)','Commande passée (▲)'],['var(--grn)','Livraison reçue (▲)']])}};
+
+T.corrections={t:'Corrections du cours',d:'Les points de ton cours qui sont faux ou incomplets',intro:'En relisant ton cours, voici ce qui est faux, inversé ou à compléter. L\'appli utilise la version corrigée.',
+ b:()=>`<div class="card" style="max-width:860px"><ul class="cor">
+ <li><b class="ko">Stock minimum et stock de sécurité inversés (calcul du besoin, données de gestion).</b> Le cours dit « stock mini (absorbe le délai de livraison), stock de sécurité (quantité qui déclenche la commande) ». C'est l'inverse : le <b>seuil d'approvisionnement</b> (point de commande, parfois appelé stock minimum) est la quantité qui <b>déclenche la commande</b>, et le <b>stock de sécurité</b> absorbe les retards et surconsommations. Ton propre chapitre « Seuil d'approvisionnement et stock de sécurité » donne d'ailleurs la bonne définition.</li>
+ <li><b class="ko">Stock moyen.</b> Le cours écrit stock moyen = (Q + stock de sécu) / 2. La bonne formule est <b>stock moyen = Q/2 + stock de sécurité</b> : le stock oscille entre SS (juste avant la livraison) et SS + Q (juste après), sa moyenne est (SS + SS + Q)/2 = SS + Q/2.</li>
+ <li><b class="wa">Pareto.</b> Vilfredo Pareto a étudié la répartition des richesses (des terres) en Italie au XIXe siècle, pas les impôts fonciers aux USA. La règle des 80/20 reste valable.</li>
+ <li><b class="wa">Taux de stockage.</b> La formule t% = (dépenses annuelles / valeur moyenne en stock) × 100 est juste. Dans la formule de Wilson, t doit être utilisé en décimal (20 % = 0,20).</li>
+ <li><b class="wa">Exemple Wilson (CRCI2.1).</b> Résultat : Q* = √(2 × 200 000 × 150 / (10 × 0,20)) ≈ <b>5 477 unités</b>, soit 36,5 commandes par an, une tous les <b>9,86 jours</b> (360 j). Disponible dans l'onglet <a href="#wilson" style="color:var(--acc)">Quantité économique</a>.</li>
+ <li><b class="ok">Exemple MPM : correct.</b> Durée 15 j, chemin critique B–D–E, marges totales A = 2 et C = 3. L'appli retrouve les mêmes valeurs.</li>
+ <li><b class="wa">Capabilité (« voir feuille »).</b> Formules utilisées : Cm = IT / 6σ et Cmk = min(Ts − x̄ ; x̄ − Ti) / 3σ. Le seuil d'acceptation dépend de l'entreprise (1,33 par défaut ici, souvent 1,67 en automobile) : mets celui de ta feuille.</li>
+ <li><b class="wa">Méthode « date et quantité variables ».</b> Avantages et inconvénients vides dans le cours ; complétés dans l'onglet <a href="#appro" style="color:var(--acc)">Méthodes d'appro</a>.</li>
+ <li><b class="wa">Rendement.</b> R = quantité en sortie / quantité en entrée : juste. Ne pas confondre avec le TRS (taux de rendement synthétique), qui n'est pas dans ce cours.</li>
+ <li><b>Parties « voir poly / feuille / Excel ».</b> Les exemples chiffrés de l'ABC, du GANTT des ressources (bloc moteur), de la ligne de production et des charges ne sont pas dans le fichier : l'appli contient des données d'exemple à remplacer par celles de tes polys.</li></ul></div>`,c(){}};
+
+/* ---------- routeur ---------- */
+const nav=$('nav'),app=$('app');
+nav.innerHTML=Object.entries(T).map(([k,v])=>`<a href="#${k}" data-n="${k}">${v.t}</a>`).join('');
+function show(){cur=T[location.hash.slice(1)]?location.hash.slice(1):'accueil';const t=T[cur];
+ nav.querySelectorAll('a').forEach(a=>a.classList.toggle('on',a.dataset.n===cur));nav.querySelector('.on')?.scrollIntoView({block:'nearest',inline:'nearest'});
+ app.innerHTML=`<div class="bar" style="justify-content:space-between;margin:0"><h1>${t.h||t.t}</h1>${cur!=='accueil'&&cur!=='corrections'?'<button data-reset="1">Remettre l\'exemple</button>':''}</div><p class="intro">${t.intro}</p>${t.b()}`;
+ try{t.c()}catch(e){console.error(e)}}
+const calc=()=>{save();try{T[cur].c()}catch(e){console.error(e)}};
+app.addEventListener('input',e=>{const t=e.target,d=t.dataset,s=S[cur];const val=t.type==='number'?(t.value===''?'':+t.value):t.type==='checkbox'?t.checked:t.value;
+ if(d.k!==undefined){s[d.k]=(t.tagName==='SELECT'&&/^\d+$/.test(val))?+val:val;if(d.rb){save();show();return}}
+ else if(d.t!==undefined)s[d.t][+d.r][d.c]=val;else if(d.bb!==undefined)s.bb[+d.bb]=val;else if(d.s5!==undefined)s.sc[+d.s5]=+t.value;else if(d.ch!==undefined)s.ch[+d.ch]=t.checked;else return;calc()});
+app.addEventListener('click',e=>{const b=e.target.closest('button,[data-act]');if(!b)return;const d=b.dataset,s=S[cur];
+ if(d.add){const r=s[d.add];const tpl=r[0]?Object.fromEntries(Object.entries(r[0]).map(([k,v])=>[k,typeof v==='number'?0:''])):{};r.push(tpl);save();show()}
+ else if(d.del){s[d.del].splice(+d.r,1);save();show()}
+ else if(d.reset){S[cur]=clone(D[cur]);save();show()}
+ else if(d.act==='typ'){s.q=d.q;s.r=d.r;save();show()}
+ else if(d.act==='usert'){const dep=s.dep.reduce((x,y)=>x+N(y.v),0);s.t=+(dep/N(s.vm)*100).toFixed(2);save();show()}});
+addEventListener('hashchange',show);show();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script></body></html>
